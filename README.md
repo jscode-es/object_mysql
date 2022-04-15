@@ -25,21 +25,7 @@ The way to use this module is by declaring the following attributes in the envir
 | DB_USER   | User name |
 | DB_PASS   | Database password |
 | DB_TABLE  | Schema name |
-
-
-### Method of using the objects
-
-|Name | Method  | Definition |  Return data |
-|--- |--- |--- |--- |
-| add | [name_table].add (params:object)                           | Add data to the table | { error, result }|
-| get | [name_table].get (params:object)                           | Recover data |{ error, result }|
-| update | [name_table].update (id:number-string,params:object)       | Update data |{ error, result }|
-| remove | [name_table].remove (id:number-string)                     | Delete data |{ error, result }|
-| getByPk | [name_table].getByPk (id:number-string, pk: any = 'id')    | Recover data based on its primary key |{ error, result }|
-| getByAttr | [name_table].getByAttr (nameAttr:string, attr: string-number-null)  | Retrieve data according to its attributes |{ error, result }|
-| count | [name_table].count (row:string, params:object)             | Retrieve register total | int |
-| getTotal | [name_table].getTotal ()                                   | Retrieve register total | int |
-| isExist | [name_table].isExist (params:object)                       | Check if record exists based on attributes | boolean |
+<br>
 
 ### Module Additions Method
 |Name | Method  | Definition |  Return data |
@@ -72,6 +58,21 @@ const exec = async () => {
 
 exec()
 ```
+<br>
+
+### Method of using the objects
+
+|Method | Parameters  | Definition |  Return data |
+|--- |--- |--- |--- |
+| add | params:object                        | Add data to the table | { error, result }|
+| get | params:object                         | Recover data |{ error, result }|
+| update | id:number-string, params:object      | Update data |{ error, result }|
+| remove | id:number-string                    | Delete data |{ error, result }|
+| getByPk | id:number-string, pk: any = 'id'   | Recover data based on its primary key |{ error, result }|
+| getByAttr | nameAttr:string, attr: string-number-null  | Retrieve data according to its attributes |{ error, result }|
+| count | row:string, params:object             | Retrieve register total | int |
+| getTotal | ---                                  | Retrieve register total | int |
+| isExist | params:object                     | Check if record exists based on attributes | boolean |
 <br>
 
 ## Example: directly attack the table object
@@ -110,6 +111,7 @@ const exec = async () => {
 
 exec()
 ```
+<br>
 
 ## Last test
 
