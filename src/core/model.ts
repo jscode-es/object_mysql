@@ -326,7 +326,7 @@ export default class Model {
         let { attrs } = this
 
         let result: any = {}
-        let errors: any = []
+        let error: any = []
 
         if (!Array.isArray(data)) {
             data = [data]
@@ -348,13 +348,13 @@ export default class Model {
 
                 result = success
 
-            } else errors.push(error)
+            } else error.push(error)
 
         }
 
-        if (errors.length === 0) {
+        if (error.length === 0) {
 
-            errors = false
+            error = false
 
             let item = await this.get({ where: { id: result.insertId } })
 
@@ -365,15 +365,13 @@ export default class Model {
             //Socket.sendDash(`total:${this.getName()}`, total)
         }
 
-        return { result, errors }
+        return { result, error }
     }
 
     async get(params: any) {
 
-        // TODO: validates params to schema
-
         let result: any = []
-        let errors: any = []
+        let error: any = []
 
         let db = new Database()
 
@@ -439,17 +437,16 @@ export default class Model {
 
         result = await db.query(sql)
 
-        if (errors.length === 0) errors = false
+        if (error.length === 0) error = false
 
-        return { result, errors }
+        return { result, error }
     }
 
     async update(find: any, data: any, pk: any = 'id') {
 
         let result: any = []
-        let errors: any = []
 
-        if (typeof data !== 'object') return { result, errors: 'This data is not to Object' }
+        if (typeof data !== 'object') return { result, error: 'This data is not to Object' }
 
         let where = ''
 
@@ -507,9 +504,9 @@ export default class Model {
 
         }
 
-        if (errors.length === 0) {
+        if (error.length === 0) {
 
-            errors = false
+            error = false
 
             let item = await this.get({ where: { id: find } })
 
@@ -520,13 +517,13 @@ export default class Model {
             //Socket.sendDash(`total:${this.getName()}`, total)
         }
 
-        return { result, errors }
+        return { result, error }
     }
 
     async remove(id: any, pk: any = 'id') {
 
         let result: any = []
-        let errors: any = []
+        let error: any = []
 
         // TODO: validates params to schema
 
@@ -553,12 +550,12 @@ export default class Model {
 
         } else {
 
-            errors = 'Required id'
+            error = 'Required id'
         }
 
-        if (errors.length === 0) {
+        if (error.length === 0) {
 
-            errors = false
+            error = false
 
             //Socket.sendDash(`delete:${this.getName()}`, id)
 
@@ -568,7 +565,7 @@ export default class Model {
 
         }
 
-        return { result, errors }
+        return { result, error }
 
     }
 
@@ -602,9 +599,9 @@ export default class Model {
 
         where[pk] = id
 
-        let { result, errors } = await this.get({ where })
+        let { result, error } = await this.get({ where })
 
-        return { result, errors }
+        return { result, error }
     }
 
     async getByAttr(nameAttr: string, attr: string | number | null) {
@@ -613,9 +610,9 @@ export default class Model {
             [nameAttr]: attr
         }
 
-        let { result, errors } = await this.get({ where })
+        let { result, error } = await this.get({ where })
 
-        return { result, errors }
+        return { result, error }
     }
 
     async count(row: string = '*', params: any = {}) {
