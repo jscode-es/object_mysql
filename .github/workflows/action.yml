@@ -1,0 +1,18 @@
+name: Testing to module
+
+on:
+  push:
+    branches:
+      - main
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Install Mysql
+      - uses: mirromutth/mysql-action@v1.1
+        with:
+          mysql version: "8.0"
+          mysql database: "bluewool" # Optional, default value is "test". The specified database which will be create
+          mysql root password: ${{ secrets.RootPassword }} # Required if "mysql user" is empty, default is empty. The root superuser password
+          mysql user: ${{ secrets.RootUser }} # Required if "mysql root password" is empty, default is empty. The superuser for the specified database. Can use secrets, too
+          mysql password: ${{ secrets.DatabasePassword }} # Required if "mysql user" exists. The password for the "mysql user"
