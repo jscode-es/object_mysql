@@ -16,7 +16,7 @@ export default class Build {
         // Model
         let models: any = {}
 
-        // Si ya hay un esquema en cache
+        // If there is already a cached schema
         if (Build.cache[schema]) return Build.cache[schema]
 
         // Define schema
@@ -46,7 +46,7 @@ export default class Build {
 
         if (!tables) return models
 
-        // Recorrer todas las tablas
+        // Loop through all tables
         for (let i = 0; i < tables.length; i++) {
 
             let tableName = toCamelCase(tables[i].TABLE_NAME)
