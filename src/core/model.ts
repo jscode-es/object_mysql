@@ -3,8 +3,8 @@ import Database from "./database"
 import Validate from "./validate"
 
 export default class Model {
-    // attrs class
 
+    // attrs class
     private name: string
     private schema: string
     private attrs: any
@@ -29,22 +29,27 @@ export default class Model {
     async getAttrs() {
 
         if (!this.keys.length) {
+
             const db = new Database()
 
             const sql = `SELECT * 
             FROM INFORMATION_SCHEMA.COLUMNS
-            WHERE TABLE_SCHEMA = '${this.getName()}' AND TABLE_NAME = '${this.getName()}'`
+            WHERE TABLE_SCHEMA = '${this.getSchema()}' 
+            AND TABLE_NAME = '${this.getName()}'
+            ORDER BY ORDINAL_POSITION ASC`
 
             const items = await db.query(sql)
 
             let keys: Array<String> = []
 
-            for (const { COLUMNS_NAME } of items) {
+            for (const { COLUMN_NAME } of items) {
 
-                keys.push(COLUMNS_NAME)
+                keys.push(COLUMN_NAME)
             }
 
             this.keys = keys
+
+            await this.getPrimaryKey()
 
             return items
         }
@@ -58,21 +63,23 @@ export default class Model {
     async getPrimaryKey() {
 
         if (!this.primaryKeys.length) {
+
             const db = new Database()
 
             const sql = `SELECT * 
             FROM INFORMATION_SCHEMA.COLUMNS
-            WHERE TABLE_SCHEMA = '${this.getName()}' 
+            WHERE TABLE_SCHEMA = '${this.getSchema()}' 
             AND TABLE_NAME = '${this.getName()}'
-            AND COLUMN_KEY = 'PRI'`
+            AND COLUMN_KEY = 'PRI'
+            ORDER BY ORDINAL_POSITION ASC`
 
             let primaryKeys: Array<String> = []
 
             const items = await db.query(sql)
 
-            for (const { COLUMNS_NAME } of items) {
+            for (const { COLUMN_NAME } of items) {
 
-                primaryKeys.push(COLUMNS_NAME)
+                primaryKeys.push(COLUMN_NAME)
             }
 
             this.primaryKeys = primaryKeys
@@ -95,7 +102,7 @@ export default class Model {
     }
 
     // ------------------------------------
-    // Método privador para formatear
+    // Private method to format
     // ------------------------------------
     private formatIn(_in: any, delWhere: boolean = false) {
 
@@ -309,7 +316,7 @@ export default class Model {
     }
 
     // ------------------------------------
-    // Método propios para usar las bbdd
+    // Own method to use the databases
     // ------------------------------------
 
     async add(data: any) {
@@ -430,8 +437,6 @@ export default class Model {
             }
         }
 
-        console.log('[ sql ] =>>', sql)
-
         result = await db.query(sql)
 
         if (errors.length === 0) errors = false
@@ -497,10 +502,6 @@ export default class Model {
             let sql = `UPDATE \`${this.getName()}\` SET ${set} ${where}`
 
             value = Object.assign(value, { find })
-
-            console.log({
-                sql, value
-            });
 
             result = await db.query(sql, value)
 
@@ -572,7 +573,7 @@ export default class Model {
     }
 
     // ------------------------------------
-    // Método especiales para usar las bbdd
+    // Special methods to use the databases
     // ------------------------------------
 
     check(data: any, required = true) {
@@ -607,6 +608,7 @@ export default class Model {
     }
 
     async getByAttr(nameAttr: string, attr: string | number | null) {
+
         let where = {
             [nameAttr]: attr
         }
