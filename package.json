@@ -7,7 +7,8 @@
     "start": "npm run dev",
     "dev": "cross-env NODE_ENV=development nodemon",
     "build": "tsc",
-    "test": "jest --config jestconfig.json"
+    "test": "npm run build && jest",
+    "check": "npm run build && node index.js"
   },
   "repository": {
     "type": "git",
@@ -32,12 +33,6 @@
     "exec": "npm run build && node ./dist/index.js",
     "verbose": false,
     "legacyWatch": true
-  },
-  "jest": {
-    "testEnvironment": "node",
-    "coveragePathIgonerPatterns": [
-      "/node_modules"
-    ]
   },
   "files": [
     "dist/**/*"
