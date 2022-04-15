@@ -1,1 +1,3 @@
+[![.github/workflows/action.yml](https://github.com/jscode-es/object_mysql/actions/workflows/action.yml/badge.svg)](https://github.com/jscode-es/object_mysql/actions/workflows/action.yml)
+
 # object_mysql
