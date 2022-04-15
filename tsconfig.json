@@ -13,6 +13,7 @@
         "outDir": "./dist",
         "module": "CommonJS",
         "strict": true,
+        "declaration": true,
         "esModuleInterop": true,
         "noImplicitAny": true,
         "resolveJsonModule": true,
