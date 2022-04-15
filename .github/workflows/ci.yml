@@ -22,7 +22,11 @@ jobs:
           node-version: "16.13.0"
       - name: Install dependencies
         run: npm i
-      - name: Build dist
+      - name: Execute build
         run: npm run build
+      - uses: actions/download-artifact@v2
+        with:
+          name: dist
+          path: dist
       - name: Execute test
         run: npm test
