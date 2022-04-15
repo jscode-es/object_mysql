@@ -5,7 +5,6 @@
     <h1>Module: object_mysql</h1>
     <h2>Retrieve databases in Javascript object format</h2>
     <p>With this module synchronize the Mysql database in a more dynamic<br> way to implement in your project created with NodeJs</p>
-    <button name="button" style="background:#2196f3; color:white; border:none; padding:10px 20px; border-radius:10px; cursor:pointer;" onclick="https://www.npmjs.com/package/object_mysql">Ir a npm</button>
     </td>
  </tr>
 </table>
@@ -27,7 +26,30 @@ The way to use this module is by declaring the following attributes in the envir
 | DB_PASS   | Database password |
 | DB_TABLE  | Schema name |
 
-## Example
+
+### Method of using the objects
+
+|Name | Method  | Definition |  Return data |
+|--- |--- |--- |--- |
+| add | [name_table].add (params:object)                           | Add data to the table | { error, result }|
+| get | [name_table].get (params:object)                           | Recover data |{ error, result }|
+| update | [name_table].update (id:number-string,params:object)       | Update data |{ error, result }|
+| remove | [name_table].remove (id:number-string)                     | Delete data |{ error, result }|
+| getByPk | [name_table].getByPk (id:number-string, pk: any = 'id')    | Recover data based on its primary key |{ error, result }|
+| getByAttr | [name_table].getByAttr (nameAttr:string, attr: string-number-null)  | Retrieve data according to its attributes |{ error, result }|
+| count | [name_table].count (row:string, params:object)             | Retrieve register total | int |
+| getTotal | [name_table].getTotal ()                                   | Retrieve register total | int |
+| isExist | [name_table].isExist (params:object)                       | Check if record exists based on attributes | boolean |
+
+### Module Additions Method
+|Name | Method  | Definition |  Return data |
+|--- |--- |--- |--- |
+| db | db.query (sql:string,params:object) |  Make an inquiry directly | { error, result }|
+
+You can pass parameters to the query so that the data to the query is parsed
+<br>
+
+## Example: direct query
 ```ts
 import Dotenv from 'dotenv'
 import ObjectDB from 'object_mysql'
@@ -37,7 +59,32 @@ Dotenv.config()
 const exec = async () => {
 
     // Retrieve object from database
-    const { NameToTable } = await ObjectDB() 
+    const { NameToTable, db } = await ObjectDB() 
+
+    // ==========================================
+    // "db" is an instance of "new Database()"
+    // ==========================================
+
+    // Directly run a query
+    const sql = 'SELECT * FROM nametotable WHERE id = :attribute_name'
+    const { error, result } = await db.query(sql, {attribute_name:1})
+}
+
+exec()
+```
+<br>
+
+## Example: directly attack the table object
+```ts
+import Dotenv from 'dotenv'
+import ObjectDB from 'object_mysql'
+
+Dotenv.config()
+
+const exec = async () => {
+
+    // Retrieve object from database
+    const { db } = await ObjectDB() 
 
     // Add data to the table
     const { error, result } = await NameToTable.add({name:"Testing data"})
