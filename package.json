@@ -1,6 +1,6 @@
 {
   "name": "object_mysql",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Recuperar bases de datos en formato objecto de Javascript",
   "main": "dist/index.js",
   "scripts": {
