@@ -3,10 +3,6 @@ const $ = process.env
 
 // Imports
 import mysql from 'promise-mysql'
-import dotenv from 'dotenv'
-
-// execute dotenv
-dotenv.config()
 
 export default class Database {
 
@@ -20,6 +16,7 @@ export default class Database {
     }
 
     private setSetting(options: any = {}) {
+
         if (typeof options !== 'object') throw "The options isn't object"
 
         let setting =
@@ -57,11 +54,12 @@ export default class Database {
 
     }
 
-    private connect() {
+    async connect() {
         return mysql.createConnection(this.setting)
     }
 
     async query(sql: string, params: any = {}) {
+
         const con = await this.connect()
 
         const data = await con.query(sql, params)
@@ -71,9 +69,11 @@ export default class Database {
         con.end()
 
         return data
+
     }
 
     getResult() {
         return this.result
     }
+
 }
