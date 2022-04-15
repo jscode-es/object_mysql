@@ -1,3 +1,3 @@
-[![.github/workflows/action.yml](https://github.com/jscode-es/object_mysql/actions/workflows/action.yml/badge.svg)](https://github.com/jscode-es/object_mysql/actions/workflows/action.yml)
+[![Testing to module](https://github.com/jscode-es/object_mysql/actions/workflows/action.yml/badge.svg?branch=main)](https://github.com/jscode-es/object_mysql/actions/workflows/action.yml)
 
 # object_mysql
