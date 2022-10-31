@@ -2,19 +2,24 @@
 const $ = process.env
 
 // Import
-import Database from './database'
-import Model from './model'
+import { Database } from './database'
+import { Model } from './model'
 import { toCamelCase } from './utils'
+import { options, models, model } from './type'
 
-export default class Build {
+export class Build {
 
     // Cache
     static cache: any = {}
 
-    static async syncDatabase(schema: string = '') {
+    constructor() { }
 
-        // Model
-        let models: any = {}
+    static async syncDatabase(options: options = {}): Promise<models> {
+
+        let schema: string = ''
+        let models: models = {}
+
+        if (options?.database) schema = options.database ?? ''
 
         // If there is already a cached schema
         if (Build.cache[schema]) return Build.cache[schema]
@@ -39,31 +44,36 @@ export default class Build {
         }
 
         // Instance database
-        const db = new Database()
+        const db = new Database(options)
 
         // Get all tables
-        let tables: any = await db.query(sql, { schema })
+        const tables: any = await db.query(sql, { schema })
 
         if (!tables) return models
+
+        const DataBaseInstance = new Database(options)
 
         // Loop through all tables
         for (let i = 0; i < tables.length; i++) {
 
-            let tableName = toCamelCase(tables[i].TABLE_NAME)
+            let tableName = toCamelCase(tables[i].TABLE_NAME);
 
             //Dynamic model generator
-            models[tableName] = await Model.generate(schema, tables[i].TABLE_NAME)
+            (models[tableName] as model) = await Model.generate({ db: DataBaseInstance, schema, table: tables[i].TABLE_NAME })
 
         }
 
         // Add intance database
-        models.db = new Database()
+        models.db = DataBaseInstance
+        models.on = (eventName: string, listener: VoidFunction) => DataBaseInstance.listener(eventName.toLowerCase(), listener)
 
         return models
-
     }
+
+    static cleanCache() { Build.cache = {} }
 
     static isSchemaExist(schema: string) {
         return typeof schema === 'string' && schema.length === 0
     }
+
 }
