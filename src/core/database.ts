@@ -2,48 +2,45 @@
 const $ = process.env
 
 // Imports
+import EventEmitter from 'events'
 import mysql from 'promise-mysql'
+import { toCamelCase } from './utils'
+import { dataObject, options, typeQueryEnd } from './type'
 
-export default class Database {
+export class Database extends EventEmitter {
 
-    // Attrs to class
     private result: any
     private setting: any
 
-    constructor(options: any = {}) {
+    constructor(options: options = {}) {
+        super()
         this.result = []
         this.setting = this.setSetting(options)
     }
 
-    private setSetting(options: any = {}) {
+    private setSetting(options: options = {}) {
 
         if (typeof options !== 'object') throw "The options isn't object"
 
         let setting =
         {
-            host: $.DB_HOST,
-            user: $.DB_USER,
-            password: $.DB_PASS,
-            database: $.DB_TABLE,
-            port: 3306,
-            multipleStatements: false,
-            connectionLimit: 5000,
+            host: $.DB_HOST ?? 'localhost',
+            user: $.DB_USER ?? 'root',
+            password: $.DB_PASS ?? '',
+            database: $.DB_TABLE ?? '',
+            port: $.DB_PORT ?? 3306,
+            multipleStatements: $.DB_MULTIPLE_STATEMENT ?? false,
+            connectionLimit: $.DB_CONNECTION_LIMIT ?? 5000,
             dateStrings: true,
-            connectionTimeout: 30000,
+            connectionTimeout: $.DB_CONNECTION_TIMEOUT ?? 30000,
             supportBigNumbers: true,
             stringifyObjects: true,
-            charset: 'utf8mb4',
+            charset: $.DB_CHARSET ?? 'utf8mb4',
             queryFormat: function (query: string, values: any) {
                 if (!values) return query
 
                 return query.replace(/\:(\w+)/g, function (text: string, key: string) {
-
-                    if (values.hasOwnProperty(key)) {
-                        return mysql.escape(values[key])
-                    }
-
-                    return text
-
+                    return (values.hasOwnProperty(key)) ? mysql.escape(values[key]) : text
                 }.bind(this))
             }
         }
@@ -58,18 +55,88 @@ export default class Database {
         return mysql.createConnection(this.setting)
     }
 
-    async query(sql: string, params: any = {}) {
+    async query(query: string, params: dataObject = {}, handler: dataObject = {}): Promise<dataObject[]> {
 
         const con = await this.connect()
+        const start = performance.now()
 
-        const data = await con.query(sql, params)
+        const model = toCamelCase(handler?.model ? String(handler.model) : '')
 
-        this.result = data
+        query = query.trim().replace(/\r?\n|\r/g, "").replace(/  +/g, ' ');
 
-        con.end()
+        try {
 
-        return data
+            const result: any = await con.query(query, params)
 
+            this.result = result
+
+            con.end()
+
+            this.endQuery({ start, query, params, result, model })
+
+            return result
+
+        } catch (error) {
+
+            this.emit('error', error)
+
+            const result: any = []
+
+            this.result = result
+
+            con.end()
+
+            this.endQuery({ start, query, params, result, model })
+
+            return result
+        }
+    }
+
+    private getDif(start: number, stop: number): number {
+        return (stop - start) / 1000
+    }
+
+    private formatTime(time: number) {
+        return parseFloat(Number(time).toFixed(3))
+    }
+
+
+    private endQuery({ start, query, params, result, model }: typeQueryEnd) {
+
+        const stop = performance.now()
+        const executionTime = this.getDif(start, stop)
+        const executionTimeFormat = `${this.formatTime(executionTime)}s`
+        const type = this.type(query)
+
+        this.emit('monitor', {
+            startTime: start,
+            endTime: stop,
+            executionTime,
+            executionTimeFormat,
+            model,
+            type,
+            query,
+            params,
+            result
+        })
+    }
+
+    private type(query: string): string | null {
+
+        let type: string | null = null
+
+        query = query.toLowerCase().split(' ')[0]
+
+        if (query.includes('select')) type = 'select'
+        if (query.includes('insert')) type = 'insert'
+        if (query.includes('update')) type = 'update'
+        if (query.includes('delete')) type = 'delete'
+
+        return type
+    }
+
+    listener(eventName: string, listener: VoidFunction) {
+        this.on(eventName, listener)
     }
 
     getResult() {
