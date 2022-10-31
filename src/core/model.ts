@@ -1,8 +1,9 @@
 // import 
-import Database from "./database"
 import Validate from "./validate"
+import { model, dataGenerate } from "./type"
 
-export default class Model {
+
+export class Model {
 
     // attrs class
     private name: string
@@ -10,12 +11,16 @@ export default class Model {
     private attrs: any
     private keys: Array<String>
     private primaryKeys: Array<String>
+    private relations: any
+    private db: any
 
-    constructor(schema: string, name: string) {
+    constructor(schema: string, name: string, db: any) {
+        this.db = db
         this.schema = schema
         this.name = name
         this.keys = []
         this.primaryKeys = []
+        this.relations = []
     }
 
     // Getters
@@ -23,14 +28,14 @@ export default class Model {
     getSchema() { return this.schema }
 
     // SET Attrs to model
-    async setAttrs(attrs: any) { this.attrs = attrs }
+    setAttrs(attrs: any) { this.attrs = attrs }
 
     // GET Attrs to model
     async getAttrs() {
 
         if (!this.keys.length) {
 
-            const db = new Database()
+            const { db } = this
 
             const sql = `SELECT * 
             FROM INFORMATION_SCHEMA.COLUMNS
@@ -44,7 +49,7 @@ export default class Model {
 
             for (const { COLUMN_NAME } of items) {
 
-                keys.push(COLUMN_NAME)
+                keys.push(COLUMN_NAME as any)
             }
 
             this.keys = keys
@@ -64,7 +69,7 @@ export default class Model {
 
         if (!this.primaryKeys.length) {
 
-            const db = new Database()
+            const { db } = this
 
             const sql = `SELECT * 
             FROM INFORMATION_SCHEMA.COLUMNS
@@ -79,7 +84,7 @@ export default class Model {
 
             for (const { COLUMN_NAME } of items) {
 
-                primaryKeys.push(COLUMN_NAME)
+                primaryKeys.push(COLUMN_NAME as any)
             }
 
             this.primaryKeys = primaryKeys
@@ -90,13 +95,41 @@ export default class Model {
         return this.primaryKeys
     }
 
-    // Model generate
-    static async generate(schema: string, table: string) {
-        const model = new Model(schema, table)
+    getRelations() {
 
+        return this.relations
+    }
+
+    async setRelations() {
+
+        const { db } = this
+
+        const sql = `
+        SELECT                         
+            TABLE_NAME,                           
+            COLUMN_NAME,                         
+            REFERENCED_TABLE_NAME,                 
+            REFERENCED_COLUMN_NAME               
+        FROM
+            INFORMATION_SCHEMA.KEY_COLUMN_USAGE  
+        WHERE
+            TABLE_SCHEMA = '${this.getSchema()}'              
+            AND REFERENCED_TABLE_NAME IS NOT NULL 
+            AND REFERENCED_TABLE_NAME = '${this.getName()}'`
+
+        const relations = await db.query(sql)
+
+        this.relations = relations[0]
+    }
+
+    // Model generate
+    static async generate({ db, schema, table }: dataGenerate): Promise<model> {
+        const model: Model = new Model(schema, table, db)
         const attrs = await Validate.setSchema(model)
 
         model.setAttrs(attrs)
+
+        await model.setRelations()
 
         return model
     }
@@ -172,9 +205,11 @@ export default class Model {
         let { keys } = this
 
         let existKey = false
+        let existFunction = false
         let sql = ''
 
         if (Array.isArray(value)) {
+
 
             for (const key of value) {
 
@@ -188,7 +223,10 @@ export default class Model {
 
                     const regex = /^([A-z]+)+\(+([\.\,\'\"\s\:\/\\A-z]+)+\)/m;
 
+
                     if (regex.test(key)) {
+
+                        existFunction = true
 
                         let [fun, alias] = key.split(/\):/m)
 
@@ -233,7 +271,8 @@ export default class Model {
             sql = sql.slice(0, -2)
         }
 
-        if (!existKey) sql = ''
+        if (!existKey && !existFunction) sql = ''
+
 
         return sql
     }
@@ -248,7 +287,14 @@ export default class Model {
 
         let existKey = false
 
-        for (const key in where) {
+        for (let key in where) {
+
+            /* let [table,attr] = key.split('.')
+
+            if(attr)
+            {
+                key = attr
+            } */
 
             if (keys.includes(key)) {
 
@@ -265,6 +311,7 @@ export default class Model {
 
                     sql += ` ( ${or.slice(0, -3)} )`
 
+
                 } else {
 
                     let regex = /\)$/m;
@@ -273,7 +320,18 @@ export default class Model {
                         sql += ' AND'
                     }
 
-                    sql += ` \`${key}\` ${type} '${where[key]}' AND`
+
+                    let typeWhere = `${type} '${where[key]}'`
+
+                    if (where[key] === null || where[key] === 'null') {
+
+                        typeWhere = 'IS NULL'
+                    }
+
+                    sql += ` ${this.getName()}.${key} ${typeWhere} AND`
+
+
+
                 }
 
             } else {
@@ -311,7 +369,6 @@ export default class Model {
 
         if (!existKey) sql = ''
 
-
         return sql
     }
 
@@ -334,48 +391,37 @@ export default class Model {
 
         for (const item of data) {
 
-            let { error, value } = Validate.check(attrs, item)
+            let { error: errors, value } = Validate.check(attrs, item)
 
-            if (!error) {
+            if (!errors) {
 
-                let db = new Database()
+                const { db } = this
 
                 let keys = Object.keys(value)
 
-                let sql = `INSERT INTO \`${this.getName()}\` ( \`${keys.join("`,`")}\` ) VALUES ( :${keys.join(",:")} )`
+                let sql = `INSERT INTO \`${this.getSchema()}\`.\`${this.getName()}\` ( \`${keys.join("`,`")}\` ) VALUES ( :${keys.join(",:")} )`
 
-                let success = await db.query(sql, value)
+                let success = await db.query(sql, value, { model: this.getName() })
 
                 result = success
 
-            } else error.push(error)
+            } else error.push(errors)
 
         }
 
-        if (error.length === 0) {
-
-            error = false
-
-            let item = await this.get({ where: { id: result.insertId } })
-
-            //Socket.sendDash(`add:${this.getName()}`, item)
-
-            let total = await this.count()
-
-            //Socket.sendDash(`total:${this.getName()}`, total)
-        }
+        if (!error.length) error = false
 
         return { result, error }
     }
 
-    async get(params: any) {
+    async get(params: any, expresion = '=') {
 
         let result: any = []
         let error: any = []
 
-        let db = new Database()
+        const { db } = this
 
-        let sql = `SELECT * FROM \`${this.getName()}\``
+        let sql = `SELECT * FROM  \`${this.getSchema()}\`.\`${this.getName()}\``
 
         if (typeof params === 'object') {
 
@@ -392,7 +438,7 @@ export default class Model {
             }
 
             if ('where' in params) {
-                sql += this.formatWhere(params.where, '=')
+                sql += this.formatWhere(params.where, expresion)
             }
 
             if ('in' in params) {
@@ -435,9 +481,9 @@ export default class Model {
             }
         }
 
-        result = await db.query(sql)
+        result = await db.query(sql, {}, { model: this.getName() })
 
-        if (error.length === 0) error = false
+        if (!error.length) error = false
 
         return { result, error }
     }
@@ -486,7 +532,7 @@ export default class Model {
 
         if (!error) {
 
-            let db = new Database()
+            const { db } = this
 
             let set = ''
 
@@ -496,26 +542,15 @@ export default class Model {
 
             set = set.slice(0, -1)
 
-            let sql = `UPDATE \`${this.getName()}\` SET ${set} ${where}`
+            let sql = `UPDATE \`${this.getSchema()}\`.\`${this.getName()}\` SET ${set} ${where}`
 
             value = Object.assign(value, { find })
 
-            result = await db.query(sql, value)
+            result = await db.query(sql, value, { model: this.getName() })
 
         }
 
-        if (error.length === 0) {
-
-            error = false
-
-            let item = await this.get({ where: { id: find } })
-
-            //Socket.sendDash(`update:${this.getName()}`, item)
-
-            let total = await this.count()
-
-            //Socket.sendDash(`total:${this.getName()}`, total)
-        }
+        if (!error || !error.length) error = false
 
         return { result, error }
     }
@@ -525,11 +560,9 @@ export default class Model {
         let result: any = []
         let error: any = []
 
-        // TODO: validates params to schema
-
         if (id && typeof id !== 'object') {
 
-            let db = new Database()
+            const { db } = this
 
             let primaryKey = await this.getPrimaryKey()
 
@@ -543,27 +576,17 @@ export default class Model {
             }
 
             let sql = `
-            DELETE FROM \`${this.getName()}\` 
+            DELETE FROM \`${this.getSchema()}\`.\`${this.getName()}\` 
             WHERE ${pk} = :id`
 
-            result = await db.query(sql, { id })
+            result = await db.query(sql, { id }, { model: this.getName() })
 
         } else {
 
             error = 'Required id'
         }
 
-        if (error.length === 0) {
-
-            error = false
-
-            //Socket.sendDash(`delete:${this.getName()}`, id)
-
-            let total = await this.count()
-
-            //Socket.sendDash(`total:${this.getName()}`, total)
-
-        }
+        if (!error.length) error = false
 
         return { result, error }
 
@@ -604,13 +627,13 @@ export default class Model {
         return { result, error }
     }
 
-    async getByAttr(nameAttr: string, attr: string | number | null) {
+    async getByAttr(nameAttr: string, attr: string | number | null, expresion = '=') {
 
         let where = {
             [nameAttr]: attr
         }
 
-        let { result, error } = await this.get({ where })
+        let { result, error } = await this.get({ where }, expresion)
 
         return { result, error }
     }
@@ -619,7 +642,7 @@ export default class Model {
 
         let result: any = 0
 
-        let db = new Database()
+        const { db } = this
 
         let sql = `SELECT COUNT(${row}) AS total FROM \`${this.getName()}\``
 
@@ -650,12 +673,74 @@ export default class Model {
 
         }
 
-        result = await db.query(sql)
+        result = await db.query(sql, {}, { model: this.getName() })
 
         return result[0].total
     }
 
     async getTotal() { return await this.count() }
+
+    async sum(attr: string, params: any = {}) {
+
+        const condition =
+        {
+            values: [`SUM(${attr}):total`]
+        }
+
+        Object.assign(condition, params)
+
+        return await this.get(condition)
+    }
+
+    async join(joins: any, params: any) {
+
+        const { db } = this
+        let current = this.getName()
+        let relation = this.getRelations()
+
+        let sql: any = `SELECT * FROM ${current} `
+
+        sql += `INNER JOIN ${relation.TABLE_NAME} ON
+        ${relation.TABLE_NAME}.${relation.COLUMN_NAME} =  ${current}.${relation.REFERENCED_COLUMN_NAME} `
+
+        /*  SELECT * FROM user 
+         INNER JOIN hotel_has_user 
+         ON hotel_has_user.user_id = user.id
+         INNER JOIN hotel 
+         ON hotel_has_user.hotel_id = hotel.id */
+
+        let sqlAndWhere = ''
+
+        for (const join of joins) {
+
+            let model = false
+
+            for (const key in join) {
+
+                if (join[key] instanceof Model) {
+
+                    let parent = join[key].getRelations()
+
+                    sql += `INNER JOIN ${join[key].getName()} ON
+                    ${parent.TABLE_NAME}.${parent.COLUMN_NAME} =  ${join[key].getName()}.${parent.REFERENCED_COLUMN_NAME} `
+
+                    let a = join[key].formatWhere(join.where)
+
+                }
+
+            }
+        }
+
+        sql += this.formatWhere(params.where)
+
+        const data = {
+            error: [],
+            result: await db.query(sql, {}, { model: this.getName() })
+        }
+
+        return data
+
+    }
 
     async isExist(params: any = {}) {
 
