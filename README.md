@@ -10,7 +10,7 @@
 </table>
 <br>
 
-## Installation
+## 🚀 Installation
 
 ```sh
 npm i object_mysql
@@ -65,7 +65,7 @@ exec()
 ```
 <br>
 
-### Method of using the objects
+### 📚 Method of using the objects
 
 |Method | Parameters  | Definition |  Return data |
 |--- |--- |--- |--- |
@@ -80,7 +80,7 @@ exec()
 | isExist | params:object                     | Check if record exists based on attributes | boolean |
 <br>
 
-## Listening events
+## 📚   Listening events
 Now you can listen to the events that occur in the module
 |Method | Definition |Return data |
 |--- |--- |--- |
@@ -196,6 +196,14 @@ const exec = async () => {
 exec()
 ```
 <br>
+
+## 🗒️ Roadmap
+- Generate cache of all models
+- String Functions
+- Numeric Functions
+- Date Functions
+- Join tables
+
 
 ## Last test
 
