@@ -29,7 +29,7 @@ The way to use this module is by declaring the following attributes in the envir
 | DB_MULTIPLE_STATEMENT| Multiple statement (default:true) |
 | DB_CONNECTION_LIMIT| Connection limit (default:5000) |
 | DB_CONNECTION_TIMEOUT| Connection timeout (default:30000) |
-| DB_CHARSET| Charset  (default:utf8mb4) |
+| DB_CHARSET| Charset (default:'utf8mb4') |
 <br>
 
 ### Module Additions Method
