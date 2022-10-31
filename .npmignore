@@ -1,3 +1,4 @@
 src
 tsconfig.json
-.env
+setting
+__test__
