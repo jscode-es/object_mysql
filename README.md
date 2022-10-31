@@ -45,7 +45,7 @@ Dotenv.config()
 const exec = async () => {
 
     // Retrieve object from database
-    const { NameToTable, db } = await ObjectDB() 
+    const { ...NameToTable, db } = await ObjectDB() 
 
     // ==========================================
     // "db" is an instance of "new Database()"
@@ -69,11 +69,90 @@ exec()
 | update | id:number-string, params:object      | Update data |{ error, result }|
 | remove | id:number-string                    | Delete data |{ error, result }|
 | getByPk | id:number-string, pk: any = 'id'   | Recover data based on its primary key |{ error, result }|
-| getByAttr | nameAttr:string, attr: string-number-null  | Retrieve data according to its attributes |{ error, result }|
+| getByAttr | nameAttr:string, attr: string-number-null, expresion:string ("=")  | Retrieve data according to its attributes |{ error, result }|
 | count | row:string, params:object             | Retrieve register total | int |
 | getTotal | ---                                  | Retrieve register total | int |
 | isExist | params:object                     | Check if record exists based on attributes | boolean |
 <br>
+
+## Listening events
+Now you can listen to the events that occur in the module
+|Method | Definition |Return data |
+|--- |--- |--- |
+| monitor | Recover insert, update, delete, select processes                        | object|
+| error | Recover errors                         | object |
+<br>
+
+## Example
+```ts
+import Dotenv from 'dotenv'
+import ObjectDB from 'object_mysql'
+
+Dotenv.config()
+
+const exec = async () => {
+
+    // Retrieve object from database
+    const { ...NameToTable, on } = await ObjectDB() 
+
+    on('monitor', data => {
+        console.log(data)
+    })
+
+    // Add data to the table
+    await NameToTable.add({name:"Testing data"})
+
+    // Recover data
+    await NameToTable.get({id})
+}
+
+exec()
+
+/*
+console.log -> Add data to the table
+{
+    startTime: 2955.893799999729,
+    endTime: 2958.500699999742,
+    executionTime:  0.0026069000000134112,
+    executionTimeFormat: '0.003s',
+    model: 'NameToTable',
+    type: 'insert',
+    query: 'INSERT INTO `name_to_table` (`name`) VALUES (:name)',
+    params: { name: 'Testing data' },
+    result:  OkPacket 
+    {
+        fieldCount: 0,
+        affectedRows: 1,
+        insertId: 1,
+        serverStatus: 2,
+        warningCount: 0,
+        message: '',
+        protocol41: true,
+        changedRows: 0
+    }
+}
+
+console.log -> Recover data
+{
+    startTime: 2977.9382999995723,
+    endTime:  2975.734899999574 ,
+    executionTime: 0.001358299999497831,
+    executionTimeFormat: '0.001s',
+    model: 'NameToTable',
+    type: 'insert',
+    query: 'SELECT * FROM `name_to_table` WHERE hotel.name = :name',
+    params: { name: 'Testing data' },
+    result: [
+        RowDataPacket {
+            id: 1,
+            name: 'Testing data',
+            created: '2022-10-31 15:42:33',
+            updated: '2022-10-31 15:42:33'
+        }
+    ]
+}
+*/
+```
 
 ## Example: directly attack the table object
 ```ts
@@ -85,7 +164,7 @@ Dotenv.config()
 const exec = async () => {
 
     // Retrieve object from database
-    const { db } = await ObjectDB() 
+    const { ...NameToTable } = await ObjectDB() 
 
     // Add data to the table
     const { error, result } = await NameToTable.add({name:"Testing data"})
