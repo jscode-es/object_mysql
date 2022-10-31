@@ -1,0 +1,10 @@
+{
+    "watch": [
+        "./src"
+    ],
+    "ext": "ts",
+    "exec": "npm run build && npm run service",
+    "verbose": false,
+    "legacyWatch": true,
+    "delay": 0
+}
