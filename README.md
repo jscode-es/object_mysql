@@ -21,10 +21,15 @@ npm i object_mysql
 The way to use this module is by declaring the following attributes in the environment variables.
 | Variable  | Definition |
 |---        |--- |
-| DB_HOST   | IPv4 addresses and host names |
-| DB_USER   | User name |
-| DB_PASS   | Database password |
+| DB_HOST   | IPv4 addresses and host names (default:'localhost') |
+| DB_USER   | User name (default:'root') |
+| DB_PASS   | Database password (default:'')|
 | DB_TABLE  | Schema name |
+| DB_PORT| Port connection | Port connection (default:3306)|
+| DB_MULTIPLE_STATEMENT| Multiple statement (default:true) |
+| DB_CONNECTION_LIMIT| Connection limit (default:5000) |
+| DB_CONNECTION_TIMEOUT| Connection timeout (default:30000) |
+| DB_CHARSET| Charset  (default:utf8mb4) |
 <br>
 
 ### Module Additions Method
