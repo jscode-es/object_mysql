@@ -8,9 +8,7 @@ describe('METHODS', () => {
 
     beforeAll(async () => {
 
-        const { Hotel, User, on } = await db()
-
-        on('monitor', (data: any) => console.log(data))
+        const { Hotel, User } = await db()
 
         hotel = Hotel
         user = User
@@ -28,7 +26,7 @@ describe('METHODS', () => {
 
         const result = await hotel.isExist({ name: 'Hotel Barcelona' })
 
-        expect(result).toBe(true)
+        expect(result).toBe(false)
 
     })
 
@@ -37,7 +35,7 @@ describe('METHODS', () => {
 
         const result = await hotel.count()
 
-        expect(result).toBe(0)
+        expect(result).toBe(1)
 
     })
 
