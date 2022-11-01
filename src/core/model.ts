@@ -1,6 +1,6 @@
 // import 
 import Validate from "./validate"
-import { model, dataGenerate } from "./type"
+import { model, dataGenerate, dataFunction } from "./type"
 
 
 export class Model {
@@ -376,6 +376,7 @@ export class Model {
     // Own method to use the databases
     // ------------------------------------
 
+    //TODO: ver que en el array tenga todos la misma cantidad de attributos sino verificar si tiene un valor por defecto
     async add(data: any) {
 
         if (typeof data !== 'object') return false
@@ -385,31 +386,26 @@ export class Model {
         let result: any = {}
         let error: any = []
 
-        if (!Array.isArray(data)) {
-            data = [data]
-        }
+        if (!Array.isArray(data)) data = [data]
+
+        const { db } = this
+
+        const sql: string = `INSERT INTO \`${this.getSchema()}\`.\`${this.getName()}\` ( \`${Object.keys(data[0]).join("`,`")}\` ) VALUES ?`
 
         for (const item of data) {
 
-            let { error: errors, value } = Validate.check(attrs, item)
+            let { error: errors } = Validate.check(attrs, item)
 
-            if (!errors) {
-
-                const { db } = this
-
-                let keys = Object.keys(value)
-
-                let sql = `INSERT INTO \`${this.getSchema()}\`.\`${this.getName()}\` ( \`${keys.join("`,`")}\` ) VALUES ( :${keys.join(",:")} )`
-
-                let success = await db.query(sql, value, { model: this.getName() })
-
-                result = success
-
-            } else error.push(errors)
-
+            if (errors) error.push(errors)
         }
 
         if (!error.length) error = false
+
+        const values = data.map((item: any) => Object.values(item))
+
+        let success = await db.query(sql, values, { model: this.getName() })
+
+        result = success
 
         return { result, error }
     }
@@ -680,16 +676,86 @@ export class Model {
 
     async getTotal() { return await this.count() }
 
-    async sum(attr: string, params: any = {}) {
+    async getDataFunction({ attr, params, nameFun, attrName }: dataFunction) {
 
         const condition =
         {
-            values: [`SUM(${attr}):total`]
+            values: [`${nameFun}(${attr}):${attrName}`]
         }
 
         Object.assign(condition, params)
 
         return await this.get(condition)
+    }
+
+    async sum(attr: string, params: any = {}) {
+
+        return this.getDataFunction({ attr, params, nameFun: 'SUM', attrName: 'total' })
+    }
+
+    async avg(attr: string, params: any = {}) {
+
+        return this.getDataFunction({ attr, params, nameFun: 'AVG', attrName: 'total' })
+    }
+
+    /*  async count(attr: string = '*', params: any = {}) {
+ 
+         return this.getDataFunction({ attr, params, nameFun: 'COUNT', attrName: 'total' })
+     } */
+
+    async max(attr: string, params: any = {}) {
+
+        return this.getDataFunction({ attr, params, nameFun: 'MAX', attrName: 'total' })
+    }
+
+    async min(attr: string, params: any = {}) {
+
+        return this.getDataFunction({ attr, params, nameFun: 'MIN', attrName: 'total' })
+    }
+
+    async ascii(attr: string, params: any = {}) {
+
+        return this.getDataFunction({ attr, params, nameFun: 'ASCII', attrName: 'data' })
+    }
+
+    async char_length(attr: string, params: any = {}) {
+
+        return this.getDataFunction({ attr, params, nameFun: 'CHAR_LENGTH', attrName: 'data' })
+    }
+
+    async length(attr: string, params: any = {}) {
+
+        return this.getDataFunction({ attr, params, nameFun: 'LENGTH', attrName: 'data' })
+    }
+
+    async lower(attr: string, params: any = {}) {
+
+        return this.getDataFunction({ attr, params, nameFun: 'LOWER', attrName: 'data' })
+    }
+
+    async trim(attr: string, params: any = {}) {
+
+        return this.getDataFunction({ attr, params, nameFun: 'TRIM', attrName: 'data' })
+    }
+
+    async ltrim(attr: string, params: any = {}) {
+
+        return this.getDataFunction({ attr, params, nameFun: 'LTRIM', attrName: 'data' })
+    }
+
+    async rtrim(attr: string, params: any = {}) {
+
+        return this.getDataFunction({ attr, params, nameFun: 'RTRIM', attrName: 'data' })
+    }
+
+    async reverse(attr: string, params: any = {}) {
+
+        return this.getDataFunction({ attr, params, nameFun: 'REVERSE', attrName: 'data' })
+    }
+
+    async upper(attr: string, params: any = {}) {
+
+        return this.getDataFunction({ attr, params, nameFun: 'UPPER', attrName: 'data' })
     }
 
     async join(joins: any, params: any) {
