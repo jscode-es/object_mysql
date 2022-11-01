@@ -23,13 +23,25 @@ export interface model {
     get: Function
     update: Function
     remove: Function
+    isExist: Function
     check: Function
     getByPk: Function
     getByAttr: Function
     count: Function
     getTotal: Function
     sum: Function
-    isExist: Function
+    avg: Function
+    max: Function
+    min: Function
+    ascii: Function
+    char_length: Function
+    length: Function
+    lower: Function
+    trim: Function
+    ltrim: Function
+    rtrim: Function
+    reverse: Function
+    upper: Function
 }
 
 export interface models {
@@ -37,6 +49,8 @@ export interface models {
     db?: any
     types?: any
     on?: any
+    cleanCache?: any
+    getCache?: any
 }
 
 export interface dataObject {
@@ -56,4 +70,12 @@ export interface typeQueryEnd {
     params: dataObject
     result: dataObject[]
 }
+
+export interface dataFunction {
+    attr: string
+    params: dataObject
+    nameFun: string
+    attrName: string
+}
+
 
