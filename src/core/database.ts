@@ -22,7 +22,25 @@ export class Database extends EventEmitter {
 
         if (typeof options !== 'object') throw "The options isn't object"
 
-        let setting =
+        const formatMutipleInsert = (query: string, multipleArray: any[][]) => {
+
+            let values = ''
+
+            multipleArray.forEach((value) => {
+                values += '('
+                value.forEach((item) => {
+                    values += `${mysql.escape(item)},`
+                })
+                values = values.slice(0, -1)
+                values += '),'
+            })
+
+            values = values.slice(0, -1)
+
+            return query.replace('?', values)
+        }
+
+        const setting =
         {
             host: $.DB_HOST ?? 'localhost',
             user: $.DB_USER ?? 'root',
@@ -37,7 +55,10 @@ export class Database extends EventEmitter {
             stringifyObjects: true,
             charset: $.DB_CHARSET ?? 'utf8mb4',
             queryFormat: function (query: string, values: any) {
+
                 if (!values) return query
+
+                if (Array.isArray(values) && query.includes('INSERT')) return formatMutipleInsert(query, values)
 
                 return query.replace(/\:(\w+)/g, function (text: string, key: string) {
                     return (values.hasOwnProperty(key)) ? mysql.escape(values[key]) : text
