@@ -174,6 +174,9 @@ const exec = async () => {
     // Add data to the table
     const { error, result } = await NameToTable.add({name:"Testing data"})
 
+    // Muliple add data to the table
+    const { error, result } = await NameToTable.add([{name:"Testing data"},{name:"Other data"},{name:"more data"}])
+
     if(error) return false 
 
     //Unique identifier of the inserted data
@@ -197,8 +200,31 @@ exec()
 ```
 <br>
 
+## String Function
+|check|Method | Description | 
+|--- |--- |--- |
+|✅| ascii | function returns the ASCII value for the specific character | 
+|✅| char_length | function return the length of a string (in characters)|
+|✅| length | function returns the length of a string (in bytes)|
+|✅| lower | function converts a string to lower-case|
+|✅| trim | function removes leading and trailing spaces from a string|
+|✅| ltrim | function removes leading spaces from a string |
+|✅| rtrim | function removes trailing spaces from a string|
+|✅| reverse | function reverses a string and returns the result|
+|✅| upper | function converts a string to upper-case|
+
+## Numeric Function
+|check|Method | Description | 
+|--- |--- |--- |
+|✅| count | function returns the number of records returned by a select query| 
+|✅| sum | function calculates the sum of a set of values|
+|✅| avg | function returns the average value of an expression|
+|✅| max | function returns the maximum value in a set of values|
+|✅| min | function returns the minimum value in a set of values|
+
+<br>
+
 ## 🗒️ Roadmap
-- Generate cache of all models
 - String Functions
 - Numeric Functions
 - Date Functions
