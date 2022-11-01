@@ -1,6 +1,6 @@
 {
   "name": "object_mysql",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Recuperar bases de datos en formato objecto de Javascript",
   "main": "dist/index.js",
   "scripts": {
@@ -8,9 +8,8 @@
     "start": "npm run dev --silent",
     "dev": "cross-env NODE_ENV=development nodemon --config ./setting/nodemon.json",
     "build": "tsc -p ./setting",
-    "test": "npm run build && jest -c ./setting/jest.config.js",
-    "clean:build": "rimraf ./dist ",
-    "jest": "jest --init"
+    "test": "npm run build && jest --maxWorkers=1 -c ./setting/jest.config.js",
+    "clean:build": "rimraf ./dist "
   },
   "repository": {
     "type": "git",
