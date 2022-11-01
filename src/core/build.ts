@@ -66,11 +66,15 @@ export class Build {
         // Add intance database
         models.db = DataBaseInstance
         models.on = (eventName: string, listener: VoidFunction) => DataBaseInstance.listener(eventName.toLowerCase(), listener)
+        models.cleanCache = Build.cleanCache
+        models.getCache = Build.getCache
 
         return models
     }
 
-    static cleanCache() { Build.cache = {} }
+    private static cleanCache() { Build.cache = {} }
+
+    private static getCache() { return Build.cache }
 
     static isSchemaExist(schema: string) {
         return typeof schema === 'string' && schema.length === 0
