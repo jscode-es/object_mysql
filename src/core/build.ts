@@ -21,6 +21,8 @@ export class Build {
 
         if (options?.database) schema = options.database ?? ''
 
+        if (!schema) schema = String($.DB_TABLE)
+
         // If there is already a cached schema
         if (Build.cache[schema]) return Build.cache[schema]
 
@@ -62,6 +64,8 @@ export class Build {
             (models[tableName] as model) = await Model.generate({ db: DataBaseInstance, schema, table: tables[i].TABLE_NAME })
 
         }
+
+        Build.cache[schema] = models
 
         // Add intance database
         models.db = DataBaseInstance
