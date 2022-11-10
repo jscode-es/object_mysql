@@ -27,7 +27,7 @@ export default class Validate {
 
             schema[COLUMN_NAME] = null
 
-            if (DATA_TYPE === 'varchar' || DATA_TYPE === 'text') {
+            if (DATA_TYPE === 'varchar' || DATA_TYPE === 'text' || DATA_TYPE === 'mediumtext' || DATA_TYPE === 'tinyinttext' || DATA_TYPE === 'longtext') {
                 schema[COLUMN_NAME] = Joi.string().trim()
 
                 if (CHARACTER_MAXIMUM_LENGTH) {
