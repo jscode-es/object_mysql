@@ -1,6 +1,6 @@
 // import 
 import Validate from "./validate"
-import { model, dataGenerate, dataFunction } from "./type"
+import { model, dataGenerate, dataFunction, dataObject } from "./type"
 
 
 export class Model {
@@ -13,6 +13,7 @@ export class Model {
     private primaryKeys: Array<String>
     private relations: any
     private db: any
+    private MAX_LIMIT = 1_000
 
     constructor(schema: string, name: string, db: any) {
         this.db = db
@@ -390,6 +391,9 @@ export class Model {
 
         const { db } = this
 
+        // TODO: Split to data 
+        // if(this.MAX_LIMIT >= data.length) return this.addSplitMaxArray(data)
+
         const sql: string = `INSERT INTO \`${this.getSchema()}\`.\`${this.getName()}\` ( \`${Object.keys(data[0]).join("`,`")}\` ) VALUES ?`
 
         for (const item of data) {
@@ -408,6 +412,29 @@ export class Model {
         result = success
 
         return { result, error }
+    }
+
+
+    private addSplitMaxArray(data: Array<dataObject> = []) {
+        if (this.MAX_LIMIT >= data.length) return [data]
+
+        let content: Array<dataObject>[] = []
+        let block: Array<dataObject> = []
+
+        for (const item of data) {
+
+            block.push(item)
+
+            if (this.MAX_LIMIT === block.length) {
+                content.push(block)
+                block = []
+            }
+        }
+
+        if (block.length) content.push(block)
+
+        return content
+
     }
 
     async get(params: any, expresion = '=') {
@@ -697,11 +724,6 @@ export class Model {
 
         return this.getDataFunction({ attr, params, nameFun: 'AVG', attrName: 'total' })
     }
-
-    /*  async count(attr: string = '*', params: any = {}) {
- 
-         return this.getDataFunction({ attr, params, nameFun: 'COUNT', attrName: 'total' })
-     } */
 
     async max(attr: string, params: any = {}) {
 
